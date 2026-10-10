@@ -3,6 +3,9 @@
 PROJETO DE ANÁLISE ESTATÍSTICA — BASE DE DADOS TITANIC
 Probabilidade e Estatística
 
+Grupo: Andrey Fernando Morais Barbosa, Rafael Chaves Souza,
+Filipe de Oliveira David Silva, João Pedro De Carlos Silveira
+
 Este script realiza a análise estatística descritiva da base de dados do
 Titanic (891 passageiros): tratamento de dados ausentes, análise de
 variáveis qualitativas e quantitativas, comparação entre grupos e uma
@@ -96,7 +99,9 @@ df_tratado["Age"] = df_tratado["Age"].fillna(df_tratado["Age"].median())
 # descartar a informação, criamos uma variável binária indicando se a
 # cabine foi registrada — isso por si só pode ser interessante (pode
 # estar relacionado à classe do passageiro).
-df_tratado["Cabine_Informada"] = df_tratado["Cabin"].notnull().map({True: "Sim", False: "Não"})
+df_tratado["Cabine_Informada"] = (
+    df_tratado["Cabin"].notnull().map({True: "Sim", False: "Não"})
+)
 
 # Embarked (2 ausentes): preenchido com a MODA (valor mais frequente),
 # já que são só 2 casos e a moda é a escolha padrão para poucas ausências.
@@ -113,16 +118,19 @@ print("\nBase tratada salva em titanic_tratado.csv")
 # ETAPA 2 — VARIÁVEIS QUALITATIVAS
 # ======================================================================
 
+
 def tabela_frequencia(coluna, rotulo=None):
     """Gera tabela de frequência absoluta, relativa e percentual."""
     freq_abs = coluna.value_counts()
     freq_rel = coluna.value_counts(normalize=True).round(4)
     freq_pct = (freq_rel * 100).round(2)
-    tabela = pd.DataFrame({
-        "Freq. absoluta": freq_abs,
-        "Freq. relativa": freq_rel,
-        "Percentual (%)": freq_pct,
-    })
+    tabela = pd.DataFrame(
+        {
+            "Freq. absoluta": freq_abs,
+            "Freq. relativa": freq_rel,
+            "Percentual (%)": freq_pct,
+        }
+    )
     print(f"\n--- {rotulo or coluna.name} ---")
     print(tabela)
     return tabela
@@ -133,8 +141,14 @@ def grafico_barras(coluna, titulo, nome_arquivo, rotulos=None):
     contagem = coluna.value_counts()
     if rotulos:
         contagem.index = [rotulos.get(i, i) for i in contagem.index]
-    sns.barplot(x=contagem.index, y=contagem.values, hue=contagem.index,
-                ax=ax, palette="viridis", legend=False)
+    sns.barplot(
+        x=contagem.index,
+        y=contagem.values,
+        hue=contagem.index,
+        ax=ax,
+        palette="viridis",
+        legend=False,
+    )
     ax.set_title(titulo)
     ax.set_ylabel("Número de passageiros")
     ax.set_xlabel("")
@@ -145,32 +159,49 @@ def grafico_barras(coluna, titulo, nome_arquivo, rotulos=None):
 
 # %% 7. SEXO
 tabela_frequencia(df_tratado["Sex"], "Sexo")
-grafico_barras(df_tratado["Sex"], "Distribuição por sexo", "sexo_barras",
-               rotulos={"male": "Homem", "female": "Mulher"})
+grafico_barras(
+    df_tratado["Sex"],
+    "Distribuição por sexo",
+    "sexo_barras",
+    rotulos={"male": "Homem", "female": "Mulher"},
+)
 # A interpretação desse resultado está no relatório (seção 3.1).
 
 # %% 8. CLASSE (Pclass)
 tabela_frequencia(df_tratado["Pclass"], "Classe")
-grafico_barras(df_tratado["Pclass"], "Distribuição por classe", "classe_barras",
-               rotulos={1: "1ª classe", 2: "2ª classe", 3: "3ª classe"})
+grafico_barras(
+    df_tratado["Pclass"],
+    "Distribuição por classe",
+    "classe_barras",
+    rotulos={1: "1ª classe", 2: "2ª classe", 3: "3ª classe"},
+)
 # A interpretação desse resultado está no relatório (seção 3.2).
 
 # %% 9. SOBREVIVÊNCIA
 tabela_frequencia(df_tratado["Survived"], "Sobrevivência")
-grafico_barras(df_tratado["Survived"], "Sobreviventes x não sobreviventes", "sobrevivencia_barras",
-               rotulos={0: "Não sobreviveu", 1: "Sobreviveu"})
+grafico_barras(
+    df_tratado["Survived"],
+    "Sobreviventes x não sobreviventes",
+    "sobrevivencia_barras",
+    rotulos={0: "Não sobreviveu", 1: "Sobreviveu"},
+)
 # A interpretação desse resultado está no relatório (seção 3.3).
 
 # %% 10. LOCAL DE EMBARQUE
 tabela_frequencia(df_tratado["Embarked"], "Local de embarque")
-grafico_barras(df_tratado["Embarked"], "Local de embarque", "embarque_barras",
-               rotulos={"S": "Southampton", "C": "Cherbourg", "Q": "Queenstown"})
+grafico_barras(
+    df_tratado["Embarked"],
+    "Local de embarque",
+    "embarque_barras",
+    rotulos={"S": "Southampton", "C": "Cherbourg", "Q": "Queenstown"},
+)
 # A interpretação desse resultado está no relatório (seção 3.4).
 
 
 # ======================================================================
 # ETAPA 3 — VARIÁVEIS QUANTITATIVAS
 # ======================================================================
+
 
 def resumo_quantitativo(coluna, rotulo=None):
     """Calcula todas as medidas pedidas no roteiro para uma variável quantitativa."""
@@ -228,6 +259,7 @@ grafico_hist_box(df_tratado["Parch"], "Parch", "parch_hist_boxplot")
 # ETAPA 4 — COMPARAÇÃO ENTRE GRUPOS
 # ======================================================================
 
+
 def boxplot_comparativo(df_, x, y, titulo, nome_arquivo, rotulos=None):
     fig, ax = plt.subplots(figsize=(6, 4))
     dados_plot = df_.copy()
@@ -241,23 +273,43 @@ def boxplot_comparativo(df_, x, y, titulo, nome_arquivo, rotulos=None):
 # %% 14. COMPARAÇÃO 1 — IDADE: HOMENS x MULHERES
 print("\n--- Idade por sexo ---")
 print(df_tratado.groupby("Sex")["Age"].describe().round(2))
-boxplot_comparativo(df_tratado, "Sex", "Age", "Idade: Homens x Mulheres",
-                     "idade_por_sexo", rotulos={"male": "Homem", "female": "Mulher"})
+boxplot_comparativo(
+    df_tratado,
+    "Sex",
+    "Age",
+    "Idade: Homens x Mulheres",
+    "idade_por_sexo",
+    rotulos={"male": "Homem", "female": "Mulher"},
+)
 
 # %% 15. COMPARAÇÃO 2 — IDADE: SOBREVIVENTES x NÃO SOBREVIVENTES
 print("\n--- Idade por sobrevivência ---")
 print(df_tratado.groupby("Survived")["Age"].describe().round(2))
-boxplot_comparativo(df_tratado, "Survived", "Age", "Idade: Sobreviventes x Não sobreviventes",
-                     "idade_por_sobrevivencia", rotulos={0: "Não sobreviveu", 1: "Sobreviveu"})
+boxplot_comparativo(
+    df_tratado,
+    "Survived",
+    "Age",
+    "Idade: Sobreviventes x Não sobreviventes",
+    "idade_por_sobrevivencia",
+    rotulos={0: "Não sobreviveu", 1: "Sobreviveu"},
+)
 
 # %% 16. COMPARAÇÃO 3 — TARIFA POR CLASSE
 print("\n--- Tarifa por classe ---")
 print(df_tratado.groupby("Pclass")["Fare"].describe().round(2))
-boxplot_comparativo(df_tratado, "Pclass", "Fare", "Tarifa por classe",
-                     "tarifa_por_classe", rotulos={1: "1ª classe", 2: "2ª classe", 3: "3ª classe"})
+boxplot_comparativo(
+    df_tratado,
+    "Pclass",
+    "Fare",
+    "Tarifa por classe",
+    "tarifa_por_classe",
+    rotulos={1: "1ª classe", 2: "2ª classe", 3: "3ª classe"},
+)
 
 # %% 17. EXTRA — SOBREVIVÊNCIA POR SEXO (percentual, útil para comparação 4 do roteiro)
-tab_sexo_sobrev = pd.crosstab(df_tratado["Sex"], df_tratado["Survived"], normalize="index") * 100
+tab_sexo_sobrev = (
+    pd.crosstab(df_tratado["Sex"], df_tratado["Survived"], normalize="index") * 100
+)
 print("\n--- Taxa de sobrevivência por sexo (%) ---")
 print(tab_sexo_sobrev.round(2))
 
@@ -296,7 +348,12 @@ principais = ["Mr", "Mrs", "Miss", "Master"]
 df_tratado["Titulo_agrupado"] = df_tratado["Titulo"].apply(
     lambda t: t if t in principais else "Outro"
 )
-tab_titulo = pd.crosstab(df_tratado["Titulo_agrupado"], df_tratado["Survived"], normalize="index") * 100
+tab_titulo = (
+    pd.crosstab(
+        df_tratado["Titulo_agrupado"], df_tratado["Survived"], normalize="index"
+    )
+    * 100
+)
 print("\n--- Taxa de sobrevivência por título (%) ---")
 print(tab_titulo.round(2))
 
@@ -315,5 +372,7 @@ salvar(fig, "sobrevivencia_por_titulo")
 # (mulheres e crianças primeiro) — ver detalhamento no relatório (seção 6).
 
 
-print("\n\nConcluído! Todos os gráficos estão na pasta graficos/ "
-      "e a base tratada em titanic_tratado.csv.")
+print(
+    "\n\nConcluído! Todos os gráficos estão na pasta graficos/ "
+    "e a base tratada em titanic_tratado.csv."
+)
